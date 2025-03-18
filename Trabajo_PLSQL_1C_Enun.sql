@@ -58,8 +58,41 @@ create or replace procedure registrar_pedido(
     arg_id_primer_plato INTEGER DEFAULT NULL,
     arg_id_segundo_plato INTEGER DEFAULT NULL
 ) is 
+    v_disponiblePrimerPlato BOOLEAN;
+    v_disponibleSegundoPlato BOOLEAN;
+    v_nombrePrimerPlato VARCHAR2(100);
+    v_nombreSegundoPlato VARCHAR2(100);
  begin
-  null; -- sustituye esta línea por tu código
+    -- Comprueba si no se ha definido al menos un plato
+    if arg_id_primer_plato is null and arg_id_segundo_plato is null then
+        raise_application_error(-20002, 'El pedido deber contener al menos un plato.');
+    end if;
+
+    -- Comprueba si el primer plato existe
+    if arg_id_primer_plato is not null then
+        SELECT nombre, disponible INTO v_nombrePrimerPlato, v_disponiblePrimerPlato
+        from platos
+        where id_plato = arg_id_primer_plato;
+        
+        if v_nombrePrimerPlato is null then
+            raise_application_error(-20004, 'El primer plato seleccionado no existe');
+        elsif not v_disponiblePrimerPlato then
+            raise_application_error(-20001, 'Uno de los platos seleccionados no está disponible.');
+        end if;
+    end if;
+
+    -- Comprueba si el segundo plato existe
+    if arg_id_segundo_plato is not null then
+        SELECT nombre, disponible INTO v_nombreSegundoPlato, v_disponibleSegundoPlato
+        from platos
+        where id_plato = arg_id_segundo_plato;
+        
+        if v_nombreSegundoPlato is null then
+            raise_application_error(-20004, 'El segundo plato seleccionado no existe');
+        elsif not v_disponibleSegundoPlato then
+            raise_application_error(-20001, 'Uno de los platos seleccionados no está disponible.');
+        end if;
+    end if;
 end;
 /
 
