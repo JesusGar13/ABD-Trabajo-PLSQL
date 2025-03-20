@@ -183,6 +183,15 @@ begin
     end;
     /
 
+    begin
+        DBMS_OUTPUT.PUT_LINE('Prueba 4: Pedido con plato no disponible');
+        registrar_pedido(1, 2, 1, 3);
+    exception
+        when others then
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
+    end;
+    /
+    
 
 end;
 /
