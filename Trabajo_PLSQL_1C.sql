@@ -60,8 +60,9 @@ create or replace procedure registrar_pedido(
 ) is 
     v_disponiblePrimerPlato BOOLEAN;
     v_disponibleSegundoPlato BOOLEAN;
-    v_nombrePrimerPlato VARCHAR2(100);
-    v_nombreSegundoPlato VARCHAR2(100);
+    v_precioPrimerPlato DECIMAL(10, 2);
+    v_precioSegundoPlato DECIMAL(10, 2);
+    v_precioTotal DECIMAL(10, 2);
  begin
     -- Comprueba si no se ha definido al menos un plato
     if arg_id_primer_plato is null and arg_id_segundo_plato is null then
@@ -70,28 +71,30 @@ create or replace procedure registrar_pedido(
 
     -- Comprueba si el primer plato existe
     if arg_id_primer_plato is not null then
-        SELECT nombre, disponible INTO v_nombrePrimerPlato, v_disponiblePrimerPlato
+        SELECT precio, disponible INTO v_precioPrimerPlato, v_disponiblePrimerPlato
         from platos
         where id_plato = arg_id_primer_plato;
         
-        if v_nombrePrimerPlato is null then
+        if v_precioPrimerPlato is null then
             raise_application_error(-20004, 'El primer plato seleccionado no existe');
         elsif not v_disponiblePrimerPlato then
             raise_application_error(-20001, 'Uno de los platos seleccionados no está disponible.');
         end if;
+        v_precioTotal := v_precioTotal + v_precioPrimerPlato;
     end if;
 
     -- Comprueba si el segundo plato existe
     if arg_id_segundo_plato is not null then
-        SELECT nombre, disponible INTO v_nombreSegundoPlato, v_disponibleSegundoPlato
+        SELECT precio, disponible INTO v_precioSegundoPlato, v_disponibleSegundoPlato
         from platos
         where id_plato = arg_id_segundo_plato;
         
-        if v_nombreSegundoPlato is null then
+        if v_precioSegundoPlato is null then
             raise_application_error(-20004, 'El segundo plato seleccionado no existe');
         elsif not v_disponibleSegundoPlato then
             raise_application_error(-20001, 'Uno de los platos seleccionados no está disponible.');
         end if;
+        v_precioTotal := v_precioTotal + v_precioSegundoPlato;
     end if;
 
     -- Verificar si el personal de servicio tiene menos de 5 pedidos activos
@@ -101,6 +104,11 @@ create or replace procedure registrar_pedido(
     if v_disponiblePrimerPlato >= 5 then
         raise_application_error(-20003, 'El personal de servicio tiene demasiados pedidos.');
     end if;
+
+    -- Registrar el pedido
+    select seq_pedidos.nextval into v_id_pedido from dual;
+    insert into pedidos (id_pedido, id_cliente, id_personal, total) values (v_id_pedido, arg_id_cliente, arg_id_personal, v_precioTotal);
+
 end;
 /
 
