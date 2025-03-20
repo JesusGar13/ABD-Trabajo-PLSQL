@@ -109,6 +109,24 @@ create or replace procedure registrar_pedido(
     select seq_pedidos.nextval into v_id_pedido from dual;
     insert into pedidos (id_pedido, id_cliente, id_personal, total) values (v_id_pedido, arg_id_cliente, arg_id_personal, v_precioTotal);
 
+    -- Registrar detalles del pedido
+    if arg_id_primer_plato is not null then
+        insert into detalle_pedido (id_pedido, id_plato, cantidad) values (v_id_pedido, arg_id_primer_plato, 1);
+    end if;
+    if arg_id_segundo_plato is not null then
+        insert into detalle_pedido (id_pedido, id_plato, cantidad) values (v_id_pedido, arg_id_segundo_plato, 1);
+    end if;
+
+    -- Actualiza los pedidos activos del personal de servicio
+    update personal_servicio
+    set pedidos_activos = pedidos_activos + 1
+    where id_personal = arg_id_personal;
+
+    commit;
+exception
+    when others then
+        rollback;
+        raise;
 end;
 /
 
