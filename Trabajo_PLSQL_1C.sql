@@ -93,6 +93,14 @@ create or replace procedure registrar_pedido(
             raise_application_error(-20001, 'Uno de los platos seleccionados no está disponible.');
         end if;
     end if;
+
+    -- Verificar si el personal de servicio tiene menos de 5 pedidos activos
+    SELECT pedidos_activos INTO v_disponiblePrimerPlato
+    from personal_servicio
+    where id_personal = arg_id_personal;
+    if v_disponiblePrimerPlato >= 5 then
+        raise_application_error(-20003, 'El personal de servicio tiene demasiados pedidos.');
+    end if;
 end;
 /
 
