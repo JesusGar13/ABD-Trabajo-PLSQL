@@ -31,7 +31,7 @@ CREATE TABLE platos (
     id_plato INTEGER PRIMARY KEY,
     nombre VARCHAR2(100) NOT NULL,
     precio DECIMAL(10, 2) NOT NULL,
-    disponible BOOLEAN DEFAULT TRUE
+    disponible INTEGER DEFAULT 1 CHECK (DISPONIBLE in (0,1))
 );
 
 CREATE TABLE pedidos (
@@ -150,9 +150,9 @@ begin
     insert into Personal_servicio (id_personal, nombre, apellido, pedidos_activos) values (1, 'Carlos', 'Lopez', 0);
     insert into Personal_servicio (id_personal, nombre, apellido, pedidos_activos) values (2, 'Maria', 'Fernandez', 5);
     
-    insert into Platos (id_plato, nombre, precio, disponible) values (1, 'Sopa', 10.0, TRUE);
-    insert into Platos (id_plato, nombre, precio, disponible) values (2, 'Pasta', 12.0, TRUE);
-    insert into Platos (id_plato, nombre, precio, disponible) values (3, 'Carne', 15.0, FALSE);
+    insert into Platos (id_plato, nombre, precio, disponible) values (1, 'Sopa', 10.0, 1);
+    insert into Platos (id_plato, nombre, precio, disponible) values (2, 'Pasta', 12.0, 1);
+    insert into Platos (id_plato, nombre, precio, disponible) values (3, 'Carne', 15.0, 0);
 
     commit;
 
@@ -163,6 +163,10 @@ begin
         when others then
             DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
     end;
+
+    begin
+        DBMS_OUTPUT.PUT_LINE('Prueba 2: Pedido vacio, sin platos');
+        registrar_pedido(2, 2, null, null); -- ID Cliente, ID Personal
 end;
 /
 
