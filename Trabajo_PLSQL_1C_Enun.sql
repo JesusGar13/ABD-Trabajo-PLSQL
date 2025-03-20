@@ -155,6 +155,14 @@ begin
     insert into Platos (id_plato, nombre, precio, disponible) values (3, 'Carne', 15.0, FALSE);
 
     commit;
+
+    begin
+        DBMS_OUTPUT.PUT_LINE('Prueba 1: Pedido válido con platos validos');
+        registrar_pedido(1, 2, 1, 2); -- ID Cliente, ID Personal, ID Primer Plato, ID Segundo Plato
+    exception
+        when others then
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
+    end;
 end;
 /
 
