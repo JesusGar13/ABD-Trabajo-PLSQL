@@ -74,30 +74,38 @@ create or replace procedure registrar_pedido(
     v_precioTotal := 0;
     -- Comprueba si el primer plato existe
     if arg_id_primer_plato is not null then
-        SELECT precio, disponible INTO v_precioPrimerPlato, v_disponiblePrimerPlato
-        from platos
-        where id_plato = arg_id_primer_plato;
-        
-        if v_precioPrimerPlato is null then
-            raise_application_error(-20004, 'El primer plato seleccionado no existe');
-        elsif v_disponiblePrimerPlato = 0 then
-            raise_application_error(-20001, 'Uno de los platos seleccionados no está disponible.');
-        end if;
-        v_precioTotal := v_precioTotal + v_precioPrimerPlato;
+        begin
+            SELECT precio, disponible INTO v_precioPrimerPlato, v_disponiblePrimerPlato
+            from platos
+            where id_plato = arg_id_primer_plato;
+            
+            if v_disponiblePrimerPlato = 0 then
+                raise_application_error(-20001, 'Uno de los platos seleccionados no está disponible.');
+            end if;
+
+            v_precioTotal := v_precioTotal + v_precioPrimerPlato;
+
+        exception
+            when no_data_found then
+                raise_application_error(-20004, 'El primer plato seleccionado no existe');
+        end;
     end if;
 
     -- Comprueba si el segundo plato existe
     if arg_id_segundo_plato is not null then
-        SELECT precio, disponible INTO v_precioSegundoPlato, v_disponibleSegundoPlato
-        from platos
-        where id_plato = arg_id_segundo_plato;
-        
-        if v_precioSegundoPlato is null then
-            raise_application_error(-20004, 'El segundo plato seleccionado no existe');
-        elsif v_disponibleSegundoPlato = 0 then
-            raise_application_error(-20001, 'Uno de los platos seleccionados no está disponible.');
-        end if;
-        v_precioTotal := v_precioTotal + v_precioSegundoPlato;
+        begin
+            SELECT precio, disponible INTO v_precioSegundoPlato, v_disponibleSegundoPlato
+            from platos
+            where id_plato = arg_id_segundo_plato;
+            
+            if v_disponibleSegundoPlato = 0 then
+                raise_application_error(-20001, 'Uno de los platos seleccionados no está disponible.');
+            end if;
+            v_precioTotal := v_precioTotal + v_precioSegundoPlato;
+        exception
+            when no_data_found then
+                raise_application_error(-20004, 'El segundo plato seleccionado no existe');
+        end;
     end if;
 
     -- Verificar si el personal de servicio tiene menos de 5 pedidos activos
@@ -215,8 +223,19 @@ begin
 */
     
     begin
+        DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
         DBMS_OUTPUT.PUT_LINE('Prueba 1: Pedido válido con platos validos');
         registrar_pedido(1, 1, 1, 2); -- ID Cliente, ID Personal, ID Primer Plato, ID Segundo Plato
+        
+        -- Mostrar información del pedido
+        FOR rec IN (SELECT * FROM pedidos WHERE id_pedido = 1) LOOP
+            DBMS_OUTPUT.PUT_LINE('Pedido: ' || rec.id_pedido || ', Cliente: ' || rec.id_cliente || ', Personal: ' || rec.id_personal);
+        END LOOP;
+        
+        -- Mostrar detalles del pedido
+        FOR rec IN (SELECT * FROM detalle_pedido WHERE id_pedido = 1) LOOP
+            DBMS_OUTPUT.PUT_LINE('Plato ID: ' || rec.id_plato || ', Cantidad: ' || rec.cantidad);
+        END LOOP;
     exception
         when others then
             DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
@@ -224,6 +243,7 @@ begin
         
 
     begin
+        DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
         DBMS_OUTPUT.PUT_LINE('Prueba 2: Pedido vacio, sin platos');
         registrar_pedido(2, 1, null, null); 
     exception
@@ -233,8 +253,9 @@ begin
 
 
     begin
+        DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
         DBMS_OUTPUT.PUT_LINE('Prueba 3: Pedido con plato no existente');
-        registrar_pedido(1, 1, 1, 4);
+        registrar_pedido(1, 1, 999, 2);
     exception
         when others then
             DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
@@ -242,6 +263,7 @@ begin
 
 
     begin
+        DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
         DBMS_OUTPUT.PUT_LINE('Prueba 4: Pedido con plato no disponible');
         registrar_pedido(1, 1, 1, 3);
     exception
@@ -251,6 +273,7 @@ begin
 
 
     begin
+        DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
         DBMS_OUTPUT.PUT_LINE('Prueba 5: Personal de servicio con 5 pedidos activos');
         registrar_pedido(1, 2, 1, 2);
     exception
