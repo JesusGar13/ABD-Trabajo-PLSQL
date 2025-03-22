@@ -58,8 +58,10 @@ create or replace procedure registrar_pedido(
     arg_id_primer_plato INTEGER DEFAULT NULL,
     arg_id_segundo_plato INTEGER DEFAULT NULL
 ) is 
-    v_disponiblePrimerPlato BOOLEAN;
-    v_disponibleSegundoPlato BOOLEAN;
+    v_disponiblePrimerPlato INTEGER;
+    v_disponibleSegundoPlato INTEGER;
+    v_pedidosActivos INTEGER;
+    v_id_pedido INTEGER;
     v_precioPrimerPlato DECIMAL(10, 2);
     v_precioSegundoPlato DECIMAL(10, 2);
     v_precioTotal DECIMAL(10, 2);
@@ -69,6 +71,7 @@ create or replace procedure registrar_pedido(
         raise_application_error(-20002, 'El pedido deber contener al menos un plato.');
     end if;
 
+    v_precioTotal := 0;
     -- Comprueba si el primer plato existe
     if arg_id_primer_plato is not null then
         SELECT precio, disponible INTO v_precioPrimerPlato, v_disponiblePrimerPlato
@@ -77,7 +80,7 @@ create or replace procedure registrar_pedido(
         
         if v_precioPrimerPlato is null then
             raise_application_error(-20004, 'El primer plato seleccionado no existe');
-        elsif not v_disponiblePrimerPlato then
+        elsif v_disponiblePrimerPlato = 0 then
             raise_application_error(-20001, 'Uno de los platos seleccionados no está disponible.');
         end if;
         v_precioTotal := v_precioTotal + v_precioPrimerPlato;
@@ -91,17 +94,17 @@ create or replace procedure registrar_pedido(
         
         if v_precioSegundoPlato is null then
             raise_application_error(-20004, 'El segundo plato seleccionado no existe');
-        elsif not v_disponibleSegundoPlato then
+        elsif v_disponibleSegundoPlato = 0 then
             raise_application_error(-20001, 'Uno de los platos seleccionados no está disponible.');
         end if;
         v_precioTotal := v_precioTotal + v_precioSegundoPlato;
     end if;
 
     -- Verificar si el personal de servicio tiene menos de 5 pedidos activos
-    SELECT pedidos_activos INTO v_disponiblePrimerPlato
+    SELECT pedidos_activos INTO v_pedidosActivos    
     from personal_servicio
     where id_personal = arg_id_personal;
-    if v_disponiblePrimerPlato >= 5 then
+    if v_pedidosActivos >= 5 then
         raise_application_error(-20003, 'El personal de servicio tiene demasiados pedidos.');
     end if;
 
@@ -143,7 +146,6 @@ end;
 -- * P4.5
 -- 
 
-
 create or replace
 procedure reset_seq( p_seq_name varchar )
 is
@@ -167,9 +169,9 @@ end;
 
 create or replace procedure inicializa_test is
 begin
-    
+    DBMS_OUTPUT.PUT_LINE('Inicializando test');
+
     reset_seq('seq_pedidos');
-        
   
     delete from Detalle_pedido;
     delete from Pedidos;
@@ -189,62 +191,20 @@ begin
     insert into Platos (id_plato, nombre, precio, disponible) values (3, 'Carne', 15.0, 0);
 
     commit;
-
-    begin
-        DBMS_OUTPUT.PUT_LINE('Prueba 1: Pedido válido con platos validos');
-        registrar_pedido(1, 1, 1, 2); -- ID Cliente, ID Personal, ID Primer Plato, ID Segundo Plato
-    exception
-        when others then
-            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
-    end;
-    /
-
-    begin
-        DBMS_OUTPUT.PUT_LINE('Prueba 2: Pedido vacio, sin platos');
-        registrar_pedido(2, 1, null, null); 
-    exception
-        when others then
-            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
-    end;
-    /
-
-    begin
-        DBMS_OUTPUT.PUT_LINE('Prueba 3: Pedido con plato no existente');
-        registrar_pedido(1, 1, 1, 4);
-    exception
-        when others then
-            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
-    end;
-    /
-
-    begin
-        DBMS_OUTPUT.PUT_LINE('Prueba 4: Pedido con plato no disponible');
-        registrar_pedido(1, 1, 1, 3);
-    exception
-        when others then
-            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
-    end;
-    /
-
-    begin
-        DBMS_OUTPUT.PUT_LINE('Prueba 5: Personal de servicio con 5 pedidos activos');
-        registrar_pedido(1, 2, 1, 2);
-
 end;
 /
 
-exec inicializa_test;
+--exec inicializa_test;
 
 -- Completa lost test, incluyendo al menos los del enunciado y añadiendo los que consideres necesarios
 
 create or replace procedure test_registrar_pedido is
 begin
-	 
-  --caso 1 Pedido correct, se realiza
-  begin
-    inicializa_test;
-  end;
-  
+	DBMS_OUTPUT.PUT_LINE('Empieza test');
+    
+    begin
+        inicializa_test;
+    end;
   -- Idem para el resto de casos
 
   /* - Si se realiza un pedido vac´ıo (sin platos) devuelve el error -200002.
@@ -253,7 +213,50 @@ begin
      - Personal de servicio ya tiene 5 pedidos activos y se le asigna otro pedido devuelve el error -20003
      - ... los que os puedan ocurrir que puedan ser necesarios para comprobar el correcto funcionamiento del procedimiento
 */
-  
+    
+    begin
+        DBMS_OUTPUT.PUT_LINE('Prueba 1: Pedido válido con platos validos');
+        registrar_pedido(1, 1, 1, 2); -- ID Cliente, ID Personal, ID Primer Plato, ID Segundo Plato
+    exception
+        when others then
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
+    end;
+        
+
+    begin
+        DBMS_OUTPUT.PUT_LINE('Prueba 2: Pedido vacio, sin platos');
+        registrar_pedido(2, 1, null, null); 
+    exception
+        when others then
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
+    end;
+
+
+    begin
+        DBMS_OUTPUT.PUT_LINE('Prueba 3: Pedido con plato no existente');
+        registrar_pedido(1, 1, 1, 4);
+    exception
+        when others then
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
+    end;
+
+
+    begin
+        DBMS_OUTPUT.PUT_LINE('Prueba 4: Pedido con plato no disponible');
+        registrar_pedido(1, 1, 1, 3);
+    exception
+        when others then
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
+    end;
+
+
+    begin
+        DBMS_OUTPUT.PUT_LINE('Prueba 5: Personal de servicio con 5 pedidos activos');
+        registrar_pedido(1, 2, 1, 2);
+    exception
+        when others then
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
+    end;
 end;
 /
 
