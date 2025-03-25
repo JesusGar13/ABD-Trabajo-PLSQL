@@ -224,7 +224,7 @@ begin
     
     begin
         DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
-        DBMS_OUTPUT.PUT_LINE('Prueba 1: Pedido válido con platos validos');
+        DBMS_OUTPUT.PUT_LINE('Prueba 1: Pedido válido con platos validos. El cliente 1, el personal 1 realiza el primer plato 1 y el segundo plato 2');
         registrar_pedido(1, 1, 1, 2); -- ID Cliente, ID Personal, ID Primer Plato, ID Segundo Plato
         
         -- Mostrar información del pedido
@@ -254,8 +254,17 @@ begin
 
     begin
         DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
-        DBMS_OUTPUT.PUT_LINE('Prueba 3: Pedido con plato no existente');
+        DBMS_OUTPUT.PUT_LINE('Prueba 3.1: Pedido con plato el primer plato no existente');
         registrar_pedido(1, 1, 999, 2);
+    exception
+        when others then
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
+    end;
+
+    begin
+        DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
+        DBMS_OUTPUT.PUT_LINE('Prueba 3.2: Pedido con plato el segundo plato no existente');
+        registrar_pedido(1, 1, 2, 999);
     exception
         when others then
             DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
