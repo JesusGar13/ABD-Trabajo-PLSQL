@@ -80,7 +80,7 @@ create or replace procedure registrar_pedido(
             where id_plato = arg_id_primer_plato;
             
             if v_disponiblePrimerPlato = 0 then
-                raise_application_error(-20001, 'Uno de los platos seleccionados no está disponible.');
+                raise_application_error(-20001, 'El primer plato seleccionado no está disponible.');
             end if;
 
             v_precioTotal := v_precioTotal + v_precioPrimerPlato;
@@ -99,7 +99,7 @@ create or replace procedure registrar_pedido(
             where id_plato = arg_id_segundo_plato;
             
             if v_disponibleSegundoPlato = 0 then
-                raise_application_error(-20001, 'Uno de los platos seleccionados no está disponible.');
+                raise_application_error(-20001, 'El segundo plato seleccionado no está disponible.');
             end if;
             v_precioTotal := v_precioTotal + v_precioSegundoPlato;
         exception
@@ -215,7 +215,7 @@ begin
     end;
   -- Idem para el resto de casos
 
-  /* - Si se realiza un pedido vac´ıo (sin platos) devuelve el error -200002.
+  /* - Si se realiza un pedido vacıo (sin platos) devuelve el error -200002.
      - Si se realiza un pedido con un plato que no existe devuelve en error -20004.
      - Si se realiza un pedido que incluye un plato que no est´a ya disponible devuelve el error -20001.
      - Personal de servicio ya tiene 5 pedidos activos y se le asigna otro pedido devuelve el error -20003
@@ -273,7 +273,16 @@ begin
 
     begin
         DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
-        DBMS_OUTPUT.PUT_LINE('Prueba 4: Pedido con plato no disponible');
+        DBMS_OUTPUT.PUT_LINE('Prueba 4.1: Pedido con el primer plato no disponible');
+        registrar_pedido(1, 1, 1, 3);
+    exception
+        when others then
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
+    end;
+
+    begin
+        DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
+        DBMS_OUTPUT.PUT_LINE('Prueba 4.2: Pedido con el segundo plato no disponible');
         registrar_pedido(1, 1, 1, 3);
     exception
         when others then
@@ -285,6 +294,15 @@ begin
         DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
         DBMS_OUTPUT.PUT_LINE('Prueba 5: Personal de servicio con 5 pedidos activos');
         registrar_pedido(1, 2, 1, 2);
+    exception
+        when others then
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
+    end;
+
+    begin
+        DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
+        DBMS_OUTPUT.PUT_LINE('Prueba 6: Cliente inexistente');
+        registrar_pedido(NULL, 2, 1, NULL);
     exception
         when others then
             DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
