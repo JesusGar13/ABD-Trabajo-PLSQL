@@ -62,10 +62,24 @@ create or replace procedure registrar_pedido(
     v_disponibleSegundoPlato INTEGER;
     v_pedidosActivos INTEGER;
     v_id_pedido INTEGER;
+    v_idCliente INTEGER;
     v_precioPrimerPlato DECIMAL(10, 2);
     v_precioSegundoPlato DECIMAL(10, 2);
     v_precioTotal DECIMAL(10, 2);
  begin
+
+    --Comprueba si el cliente existe
+    if arg_id_cliente is null then
+        raise_application_error(-20005, 'El cliente no existe.');
+    else
+        select count(*) into v_idCliente
+        from clientes
+        where id_cliente = arg_id_cliente;
+        if v_idCliente = 0 then
+            raise_application_error(-20005, 'El cliente no existe.');
+        end if;
+    end if;
+    
     -- Comprueba si no se ha definido al menos un plato
     if arg_id_primer_plato is null and arg_id_segundo_plato is null then
         raise_application_error(-20002, 'El pedido deber contener al menos un plato.');
@@ -301,8 +315,17 @@ begin
 
     begin
         DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
-        DBMS_OUTPUT.PUT_LINE('Prueba 6: Cliente inexistente');
+        DBMS_OUTPUT.PUT_LINE('Prueba 6: Cliente inexistente. identificador nulo');
         registrar_pedido(NULL, 2, 1, NULL);
+    exception
+        when others then
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
+    end;
+
+    begin
+        DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
+        DBMS_OUTPUT.PUT_LINE('Prueba 6: Cliente inexistente. identificador incorrecto');
+        registrar_pedido(999, 2, 1, 2);
     exception
         when others then
             DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
