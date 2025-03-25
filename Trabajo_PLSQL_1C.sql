@@ -207,6 +207,7 @@ begin
     
     insert into Personal_servicio (id_personal, nombre, apellido, pedidos_activos) values (1, 'Carlos', 'Lopez', 0);
     insert into Personal_servicio (id_personal, nombre, apellido, pedidos_activos) values (2, 'Maria', 'Fernandez', 5);
+    insert into Personal_servicio (id_personal, nombre, apellido, pedidos_activos) values (3, 'Jose', 'Manuel', 0);
     
     insert into Platos (id_plato, nombre, precio, disponible) values (1, 'Sopa', 10.0, 1);
     insert into Platos (id_plato, nombre, precio, disponible) values (2, 'Pasta', 12.0, 1);
@@ -238,16 +239,20 @@ begin
     
     begin
         DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
-        DBMS_OUTPUT.PUT_LINE('Prueba 1: Pedido válido con platos validos. El cliente 1, el personal 1 realiza el primer plato 1 y el segundo plato 2');
-        registrar_pedido(1, 1, 1, 2); -- ID Cliente, ID Personal, ID Primer Plato, ID Segundo Plato
+        DBMS_OUTPUT.PUT_LINE('Prueba 1: Pedidos válidos con platos validos.');
+        DBMS_OUTPUT.PUT_LINE('El cliente 1, el personal 1 realiza el primer plato 1 y el segundo plato 2');
+        DBMS_OUTPUT.PUT_LINE('El cliente 1, el personal 3 realiza el primer plato 1 y el segundo plato 3');
+        registrar_pedido(1, 1, 1, 2); 
+        registrar_pedido(1, 3, 1, 2); 
         
-        -- Mostrar información del pedido
-        FOR rec IN (SELECT * FROM pedidos WHERE id_pedido = 1) LOOP
+        -- Muestra los información del pedido
+        DBMS_OUTPUT.PUT_LINE('-Información de los pedidos-');
+        FOR rec IN (SELECT * FROM pedidos WHERE id_pedido = 1 or id_pedido = 2) LOOP
             DBMS_OUTPUT.PUT_LINE('Pedido: ' || rec.id_pedido || ', Cliente: ' || rec.id_cliente || ', Personal: ' || rec.id_personal);
         END LOOP;
         
-        -- Mostrar detalles del pedido
-        FOR rec IN (SELECT * FROM detalle_pedido WHERE id_pedido = 1) LOOP
+        -- Muestra los detalles del pedido
+        FOR rec IN (SELECT * FROM detalle_pedido WHERE id_pedido = 1 or id_pedido = 2) LOOP
             DBMS_OUTPUT.PUT_LINE('Plato ID: ' || rec.id_plato || ', Cantidad: ' || rec.cantidad);
         END LOOP;
     exception
@@ -288,7 +293,7 @@ begin
     begin
         DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
         DBMS_OUTPUT.PUT_LINE('Prueba 4.1: Pedido con el primer plato no disponible');
-        registrar_pedido(1, 1, 1, 3);
+        registrar_pedido(1, 1, 3, 1);
     exception
         when others then
             DBMS_OUTPUT.PUT_LINE('Error: ' || SQLCODE || ' - ' || SQLERRM);
@@ -315,7 +320,7 @@ begin
 
     begin
         DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
-        DBMS_OUTPUT.PUT_LINE('Prueba 6: Cliente inexistente. identificador nulo');
+        DBMS_OUTPUT.PUT_LINE('Prueba 6.1: Cliente inexistente. identificador nulo');
         registrar_pedido(NULL, 2, 1, NULL);
     exception
         when others then
@@ -324,7 +329,7 @@ begin
 
     begin
         DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
-        DBMS_OUTPUT.PUT_LINE('Prueba 6: Cliente inexistente. identificador incorrecto');
+        DBMS_OUTPUT.PUT_LINE('Prueba 6.2: Cliente inexistente. identificador incorrecto');
         registrar_pedido(999, 2, 1, 2);
     exception
         when others then
