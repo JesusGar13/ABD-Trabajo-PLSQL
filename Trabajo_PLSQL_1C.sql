@@ -75,7 +75,7 @@ create or replace procedure registrar_pedido(
         select count(*) into v_idCliente
         from clientes
         where id_cliente = arg_id_cliente;
-        
+
         if v_idCliente = 0 then
             raise_application_error(-20005, 'El cliente no existe.');
         end if;
@@ -259,7 +259,7 @@ begin
         DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------------------------');
         DBMS_OUTPUT.PUT_LINE('Prueba 1: Pedidos válidos con platos validos.');
         DBMS_OUTPUT.PUT_LINE('El cliente 1, el personal 1 realiza el primer plato 1 y el segundo plato 2');
-        DBMS_OUTPUT.PUT_LINE('El cliente 1, el personal 3 realiza el primer plato 1 y el segundo plato 3');
+        DBMS_OUTPUT.PUT_LINE('El cliente 1, el personal 3 realiza el primer plato 1 y el segundo plato 2');
         registrar_pedido(1, 1, 1, 2); 
         registrar_pedido(1, 3, 1, 2); 
         
