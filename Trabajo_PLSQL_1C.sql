@@ -75,6 +75,7 @@ create or replace procedure registrar_pedido(
         select count(*) into v_idCliente
         from clientes
         where id_cliente = arg_id_cliente;
+        
         if v_idCliente = 0 then
             raise_application_error(-20005, 'El cliente no existe.');
         end if;
@@ -91,7 +92,8 @@ create or replace procedure registrar_pedido(
         begin
             SELECT precio, disponible INTO v_precioPrimerPlato, v_disponiblePrimerPlato
             from platos
-            where id_plato = arg_id_primer_plato;
+            where id_plato = arg_id_primer_plato
+            for update;
             
             if v_disponiblePrimerPlato = 0 then
                 raise_application_error(-20001, 'El primer plato seleccionado no está disponible.');
@@ -110,7 +112,8 @@ create or replace procedure registrar_pedido(
         begin
             SELECT precio, disponible INTO v_precioSegundoPlato, v_disponibleSegundoPlato
             from platos
-            where id_plato = arg_id_segundo_plato;
+            where id_plato = arg_id_segundo_plato
+            for update;
             
             if v_disponibleSegundoPlato = 0 then
                 raise_application_error(-20001, 'El segundo plato seleccionado no está disponible.');
@@ -125,7 +128,8 @@ create or replace procedure registrar_pedido(
     -- Verificar si el personal de servicio tiene menos de 5 pedidos activos
     SELECT pedidos_activos INTO v_pedidosActivos    
     from personal_servicio
-    where id_personal = arg_id_personal;
+    where id_personal = arg_id_personal
+    for update;
     if v_pedidosActivos >= 5 then
         raise_application_error(-20003, 'El personal de servicio tiene demasiados pedidos.');
     end if;
