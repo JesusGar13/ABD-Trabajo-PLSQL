@@ -157,16 +157,30 @@ end;
 
 ------ Deja aquí tus respuestas a las preguntas del enunciado:
 -- NO SE CORREGIRÁN RESPUESTAS QUE NO ESTÉN AQUÍ (utiliza el espacio que necesites apra cada una)
--- * P4.1
---
--- * P4.2
---
--- * P4.3
---
--- * P4.4
---
--- * P4.5
--- 
+-- * P4.1 Para asegurar que un miembro del personal no supere el límite de 5 pedidos activos,
+-- consulto el número de pedidos que ya tiene asignados y comparo si es menor que 5.
+-- Si ya tiene 5 pedidos, lanzo una excepción controlada con el código -20003.
+-- Esto evita que se le asignen más pedidos de los permitidos.
+
+-- * P4.2 Para evitar condiciones de carrera en transacciones concurrentes,
+-- uso la cláusula SELECT ... FOR UPDATE para bloquear la fila del personal.
+-- Así garantizo que mientras una transacción actualiza los pedidos activos,
+-- otra no pueda hacerlo hasta que la primera termine, evitando inconsistencias.
+
+-- * P4.3 Sí, se puede asegurar usando una transacción completa (BEGIN ... COMMIT).
+-- Si ocurre un error en cualquiera de los pasos (insertar pedido, detalles o actualizar personal),
+-- uso ROLLBACK para deshacer todo. De esta manera evito que queden datos a medias.
+
+-- * P4.4 Si se añade un CHECK que limita los pedidos activos a 5 directamente en la tabla,
+-- podría saltar un error de integridad al intentar actualizar la tabla sin necesidad de hacer una comprobación manual.
+-- En ese caso, tendría que capturar el error SQL correspondiente (por ejemplo, con OTHERS)
+-- y traducirlo a un mensaje más claro para el usuario, como el del error -20003.
+-- También podría dejar la validación lógica previa, para dar mensajes más controlados.
+
+-- * P4.5 He utilizado una estrategia defensiva, controlando todos los posibles errores con excepciones personalizadas.
+-- Esto se ve en el uso de bloques IF con condiciones, y en la parte EXCEPTION del procedimiento,
+-- donde capturo errores y devuelvo mensajes claros según cada situación específica.
+-- También uso transacciones para asegurar la atomicidad del proceso.
 
 create or replace
 procedure reset_seq( p_seq_name varchar )
